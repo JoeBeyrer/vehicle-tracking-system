@@ -1,8 +1,8 @@
 import unittest
-from unittest.mock import patch, MagicMock
-from io import StringIO
-from PigeonBox.interface import User, Interface
-from PigeonBox.session import Auth
+from unittest.mock import *
+from io import *
+from interface import *
+from session import *
 from main import *
 
 class TestMain(unittest.TestCase):
