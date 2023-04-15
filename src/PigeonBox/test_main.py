@@ -1,8 +1,9 @@
 import unittest
 from unittest.mock import *
 from io import *
-import interface 
-import session 
+from PigeonBox.interface import *
+from PigeonBox.session import Auth
+from PigeonBox.bcolors import *
 import main
 
 class TestMain(unittest.TestCase):
