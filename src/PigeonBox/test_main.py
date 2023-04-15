@@ -5,16 +5,21 @@ from PigeonBox.interface import *
 from PigeonBox.session import Auth
 from PigeonBox.bcolors import *
 from PigeonBox.main import *
+from PigeonBox.users import *
 
 class TestMain(unittest.TestCase):
     def setUp(self):
         # create a user and interface object for testing
-        self.user = User("testuser", "password")
+        self.user = User("jdoe123", "password456", "John", "Doe")
         self.interface = Interface()
         self.interface.addUser(self.user)
-        self.car = main.Car("Tesla", "Model S", 2021, "ABC123")
-        self.customer = main.Customer("John", "Doe", "john.doe@example.com", "1234 1st Ave, Seattle, WA", "1234-5678-9012-3456")
-        self.employee = main.Employee("jdoe", "password", "John", "Doe")
+        self.car = Car(vin='1234567890', info={'make': 'Toyota', 'model': 'Corolla', 'year': 2022, 'mileage': 6},
+             performance={'engine': '1.8L 4-cylinder', 'transmission': 'CVT'}, design={'interior': 'black', 'exterior': 'silver'},
+             handling=['power steering', 'traction control'], comfort=['air conditioning', 'power windows', 'cruise control'],
+             entertainment=['AM/FM radio', 'CD player'], protection={'maintenance': 'basic', 'warranty': ['3-year/36,000-mile basic', '5-year/60,000-mile powertrain']},
+             package='standard', status='available', price=20000)
+        self.customer = Customer("John", "Doe", "1234-5678-9012-3456", "john.doe@example.com", "1234 1st Ave, Seattle, WA")
+        self.employee = Employee("jdoe123", "password456", "John", "Doe")
 
     def test_displayData(self):
         # create a list of test data
