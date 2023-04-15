@@ -4,7 +4,7 @@ from io import *
 from PigeonBox.interface import *
 from PigeonBox.session import Auth
 from PigeonBox.bcolors import *
-import main
+from PigeonBox.main import *
 
 class TestMain(unittest.TestCase):
     def setUp(self):
