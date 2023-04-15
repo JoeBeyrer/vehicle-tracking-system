@@ -142,4 +142,4 @@ class TestMain(unittest.TestCase):
         self.assertEqual(len(inventory), 0)
         main.isAdmin = True
 
-    @patch('builtins.input', side_effect=['1', '1000', '100', '2022-05-01', '2022-05-05', 'john
+    @patch('builtins.input', side_effect=['1', '1000', '100', '2022-05-01', '2022-05-05', 'john'])
