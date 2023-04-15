@@ -5,6 +5,8 @@ from PigeonBox.session import Auth
 from PigeonBox.bcolors import *
 from PigeonBox.main import *
 from PigeonBox.users import *
+from unittest.mock import *
+
 
 
 def test_displayData(mocker):
@@ -166,5 +168,116 @@ def test_updateCarStatus(): #MAY BE WRONG -- could be too simple of a test, but 
     assert "Success" in captured_output.getvalue()
     assert str(car) in captured_output.getvalue()
 
+def test_AddEmployee(mocker): #MAY BE WRONG
+    # Mocking user inputs
+    mocker.patch('main.ValidateUserInput', side_effect=["test_username", "test_password", "John", "Doe"])
 
+    # Mocking ConfirmSelection to return False
+    mocker.patch('main.ConfirmSelection', return_value=False)
 
+    # Mocking AddEmployee method to return False
+    interface_mock = MagicMock()
+    interface_mock.AddEmployee.return_value = False
+    mocker.patch('interface', interface_mock) # maybe interface.Interface??
+
+    # Assert that the function prints failure message when employee is not added
+    assert AddEmployee() == PrintFormat("Invalid", "User ('John', 'Doe') already exists")
+
+def test_RemoveEmployeeMenu(mocker):
+    # Set up the mocker
+    interface = mocker.MagicMock()
+    interface.getEmployeeList.return_value = ["Alice", "Bob", "Charlie"]
+    interface.RemoveUser.return_value = True
+
+    # Set up the input for the user's selection
+    mocker.patch("builtins.input", side_effect=["1", "yes"])
+
+    # Call the function
+    RemoveEmployeeMenu()
+
+    # Check that the correct methods were called and that the correct output was printed
+    interface.getEmployeeList.assert_called_once()
+    interface.RemoveUser.assert_called_with("Bob")
+    assert "Removed employee successfully" in mocker.call.print.call_args_list[0][0][1]
+    
+def test_displayStatusOptions(mocker): #MAY BE WRONG
+    # Mock the displayData and getAction functions
+    display_data_mock = mocker.patch("module_name.displayData")
+    get_action_mock = mocker.patch("module_name.getAction", return_value="0")
+
+    # Call the function under test
+    result = displayStatusOptions()
+
+    # Check that displayData was called with the correct argument
+    display_data_mock.assert_called_once_with(["Available", "Ordered", "BackOrder", "Delivered"])
+
+    # Check that getAction was called with the correct argument
+    get_action_mock.assert_called_once_with({"0", "1", "2", "3"}, msg="Pick a status:")
+
+    # Check that the function returns the expected value
+    assert result == "0"
+    
+def test_CarSearch(mocker): # should work
+    # Mocking user input
+    mocker.patch('builtins.input', return_value='Civic,Honda,2015')
+
+    # Mocking searchInventory method to return a car
+    interface_mock = MagicMock()
+    car_mock = MagicMock()
+    car_mock.getDetails.return_value = 'Civic, Honda, 2015'
+    interface_mock.searchInventory.return_value = car_mock
+    mocker.patch('interface', interface_mock) # maybe interface.Interface???
+
+    # Assert that the function returns the correct car details when a car is found
+    assert CarSearch() == car_mock
+    assert interface_mock.searchInventory.called_with('Civic', 'Honda', 2015)
+
+    # Mocking searchInventory method to return None
+    interface_mock.searchInventory.return_value = None
+
+    # Assert that the function prints 'No car match' message when no car is found
+    assert CarSearch() is None
+    assert interface_mock.searchInventory.called_with('Civic', 'Honda', 2015)
+
+def test_filterByMenu(mocker):
+    # Mocking user input
+    mocker.patch('builtins.input', return_value='1')
+
+    # Mocking ViewByStatus method to return a list of cars
+    interface_mock = mocker.MagicMock()
+    interface_mock.ViewByStatus.return_value = ['Car 1', 'Car 2']
+    mocker.patch('interface', interface_mock) # maybe interface.Interface???
+
+    # Assert that the function calls the ViewByStatus method with the correct status and returns None
+    assert filterByMenu() is None
+    interface_mock.ViewByStatus.assert_called_once_with('available')
+
+    # Mocking user input with an invalid option
+    mocker.patch('builtins.input', return_value='invalid_option')
+
+    # Assert that the function returns None when an invalid option is entered
+    assert filterByMenu() is None
+
+def test_modifyInventoryMenu(mocker):
+    # Mock isAdmin to True
+    mocker.patch('isAdmin', True) # may need main.isAdmin
+
+    # Mock user input for selecting 'Add car' option
+    mocker.patch('builtins.input', return_value='1')
+
+    # Mock AddCar method to return None
+    mocker.patch('main.AddCar', return_value=None)
+
+    # Assert that the function calls the AddCar method and returns None
+    assert modifyInventoryMenu() is None
+    main.AddCar.assert_called_once()
+
+    # Mock user input for selecting 'Remove car' option
+    mocker.patch('builtins.input', return_value='2')
+
+    # Mock RemoveCar method to return None
+    mocker.patch('main.RemoveCar', return_value=None)
+
+    # Assert that the function calls the RemoveCar method and returns None
+    assert modifyInventoryMenu() is None
+    main.RemoveCar.assert_called_once()
