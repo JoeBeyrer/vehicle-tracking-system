@@ -94,3 +94,77 @@ def test_getAction(mocker):
     # mock the input function to return "invalid", "2"
     mocker.patch.object(builtins, 'input', side_effect=["invalid", "2"])
     assert getAction() == "2"
+    
+
+def test_PickIndex(mocker):
+    # test with an empty list
+    mocker.patch.object(builtins, 'input', return_value='q')
+    assert PickIndex([]) == None
+    
+    # test with a non-empty list
+    mocker.patch.object(builtins, 'input', side_effect=['a', '2', '1'])
+    assert PickIndex(['apple', 'banana', 'cherry']) == 1
+
+    # test with an index out of bounds
+    mocker.patch.object(builtins, 'input', side_effect=['5', '-1', '0', 'q'])
+    assert PickIndex(['apple', 'banana', 'cherry']) == None
+
+    # test with a non-numeric input
+    mocker.patch.object(builtins, 'input', side_effect=['one', '0', 'q'])
+    assert PickIndex(['apple', 'banana', 'cherry']) == None
+
+    # test with cancelling
+    mocker.patch.object(builtins, 'input', return_value='q')
+    assert PickIndex(['apple', 'banana', 'cherry']) == None
+
+    
+def test_SeparateInputToList():
+    # test with a single item
+    assert SeparateInputToList("apple") == ["apple"]
+
+    # test with multiple items separated by comma
+    assert SeparateInputToList("apple, banana, cherry") == ["apple", "banana", "cherry"]
+
+    # test with multiple items separated by comma and whitespace
+    assert SeparateInputToList("apple,     banana, cherry") == ["apple", "banana", "cherry"]
+
+    # test with no input
+    assert SeparateInputToList("") == []
+    
+    
+def test_GetObject(mocker):
+    # mock the PickIndex function to return 1
+    mocker.patch.object(main, 'PickIndex', return_value=1)
+
+    # create a list of test data
+    data = ["apple", "banana", "cherry"]
+
+    # test with a valid index
+    assert GetObject(data) == "banana"
+
+    # mock the PickIndex function to return None
+    mocker.patch.object(main, 'PickIndex', return_value=None)
+
+    # test when the user exits
+    assert GetObject(data) == None
+    
+    
+def test_updateCarStatus(): #MAY BE WRONG -- could be too simple of a test, but it strictly tests functionality, no integration so should be ok
+    # define initial car status
+    car = {'make': 'Honda', 'model': 'Civic', 'year': 2022, 'status': 'available'}
+
+    # simulate user choosing new status "ordered"
+    statusChoice = "1"
+
+    # call updateCarStatus function with car object and new status choice
+    updateCarStatus(car, statusChoice)
+
+    # check that car status has been updated to "ordered"
+    assert car['status'] == "ordered"
+
+    # check that success message was printed with updated car object
+    assert "Success" in captured_output.getvalue()
+    assert str(car) in captured_output.getvalue()
+
+
+
