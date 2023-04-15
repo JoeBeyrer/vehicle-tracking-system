@@ -1,9 +1,9 @@
 import unittest
 from unittest.mock import *
 from io import *
-from interface import *
-from session import *
-from main import *
+import interface 
+import session 
+import main
 
 class TestMain(unittest.TestCase):
     def setUp(self):
