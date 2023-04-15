@@ -123,6 +123,18 @@ class Interface(InterfaceObjects):
                 if customer == currentCustomer:
                     customer.orders.append(order)
 
+    def changeCarStatus(self, car, status):
+        car.SetStatus(status)
+        self.isObjListUpdated[0] = True
+
+    def changeCarPrice(self, car, newPrice):
+        car.UpdatePrice(newPrice)
+        self.isObjListUpdated[0] = True
+    
+    def changeCarMileage(self, car, newMileage):
+        car.UpdateMileage(newMileage)
+        self.isObjListUpdated[0] = True
+
     def changeCustomerEmail(self, customer, newEmail):
         customer.setEmail(newEmail)
         self.isObjListUpdated[3] = True
@@ -245,7 +257,6 @@ class Interface(InterfaceObjects):
         self.isObjListUpdated[3] = True
 
     def LogOut(self):
-        print(self.isObjListUpdated)
         if self.isObjListUpdated[0]:
             writeJson.writeJson(self.inventory)
         if self.isObjListUpdated[1]:
@@ -277,11 +288,24 @@ class AdminInterface(Interface):
         self.employees.append(newEmployee)
         self.isObjListUpdated[2] = True
         return True
+    
+    def ordersMadeByUser(self, user):
+        orders = []
+        for order in self.orders:
+            if order.getSeller() == user:
+                orders.append(order)
+        return orders
 
     def RemoveUser(self, userToRemove) -> bool:
         if not self.UserExists(userToRemove):
             return False
-        
+
+        # remove all orders made by that user
+        userOrders = self.ordersMadeByUser(userToRemove)
+        if userOrders:
+            for order in userOrders:
+                self.UndoOrder(order)
+
         if (isinstance(userToRemove, users.Admin)):
             self.admins.remove(userToRemove)
         else:
