@@ -400,3 +400,98 @@ def test_AddCar(mocker):
     
     # Check that the function returns True
     assert result == True
+    
+
+def test_RemoveCar(mocker):
+    # Mock the necessary dependencies
+    inventory_mock = mocker.patch('main.interface.GetInventory')
+    inventory_mock.return_value = ['car1', 'car2']
+    is_ordered_mock = mocker.patch('main.interface.isCarOrdered')
+    is_ordered_mock.return_value = False
+    remove_mock = mocker.patch('main.interface.RemoveInventory')
+    remove_mock.return_value = True
+    print_mock = mocker.patch('builtins.print')
+
+    # Test the function
+    RemoveCar()
+
+    # Check that the necessary functions were called
+    inventory_mock.assert_called_once()
+    is_ordered_mock.assert_called_once_with('car1')
+    remove_mock.assert_called_once_with('car1')
+    print_mock.assert_called_once_with("Success: Removed car successfully")
+    
+
+def test_addOrderMenu(mocker):
+    # Mock the necessary dependencies
+    print_mock = mocker.patch('builtins.print')
+    confirm_mock = mocker.patch('main.ConfirmSelection')
+    confirm_mock.side_effect = [True, False]  # Return values for first two ConfirmSelection calls
+    add_customer_mock = mocker.patch('main.AddCustomer')
+    add_customer_mock.return_value = {'name': 'John Doe', 'email': 'johndoe@example.com'}
+    get_object_mock = mocker.patch('main.GetObject')
+    get_object_mock.return_value = {'name': 'Jane Doe', 'email': 'janedoe@example.com'}
+    make_order_mock = mocker.patch('main.interface.MakeOrder')
+    make_order_mock.return_value = {'order_id': 1234, 'car': 'Tesla Model S', 'customer': 'John Doe'}
+
+    # Test the function
+    addOrderMenu('Tesla Model S', [{'name': 'Jane Doe', 'email': 'janedoe@example.com'}])
+
+    # Check that the necessary functions were called
+    print_mock.assert_called_with('Success', {'order_id': 1234, 'car': 'Tesla Model S', 'customer': 'John Doe'})
+    confirm_mock.assert_called_with(msg='Is this order for a new customer?')
+    add_customer_mock.assert_called_once()
+    make_order_mock.assert_called_with({'name': 'John Doe', 'email': 'johndoe@example.com'}, 'Tesla Model S', seller='user')
+    
+def test_OrderMenu(mocker):
+    # Mock the necessary dependencies
+    print_mock = mocker.patch('builtins.print')
+    confirm_mock = mocker.patch('main.ConfirmSelection')
+    confirm_mock.side_effect = [False]  # Return value for ConfirmSelection call
+    get_action_mock = mocker.patch('main.getAction')
+    get_action_mock.side_effect = ["1", ""]  # Return values for getAction calls
+    get_object_mock = mocker.patch('main.GetObject')
+    get_object_mock.side_effect = [{'model': 'Tesla Model S', 'price': 80000}, None]  # Return values for GetObject calls
+    add_order_menu_mock = mocker.patch('main.addOrderMenu')
+
+    # Test the function
+    OrderMenu()
+
+    # Check that the necessary functions were called
+    print_mock.assert_any_call('Order Menu')
+    print_mock.assert_any_call('What would you like to do?')
+    get_object_mock.assert_called_with([])
+    add_order_menu_mock.assert_called_with({'model': 'Tesla Model S', 'price': 80000}, [])
+    confirm_mock.assert_called_once_with(msg='Are you sure you want to remove this order: None?')
+    get_object_mock.assert_called_with([])
+    
+def test_ManageEmployeesMenu(mocker):
+    # Mock the necessary dependencies
+    print_mock = mocker.patch('builtins.print')
+    get_action_mock = mocker.patch('main.getAction')
+    get_action_mock.side_effect = ["1", "", "3", "", ""]  # Return values for getAction calls
+    get_object_mock = mocker.patch('main.GetObject')
+    get_object_mock.side_effect = [Employee(username='johndoe', password='password', first_name='John', last_name='Doe', date_joined=datetime.date(2020, 1, 1)), None]  # Return values for GetObject calls 
+    add_employee_mock = mocker.patch('main.AddEmployee')
+    remove_employee_menu_mock = mocker.patch('main.RemoveEmployeeMenu')
+
+    # Test the function
+    ManageEmployeesMenu()
+
+    # Check that the necessary functions were called
+    print_mock.assert_any_call('Employee Management Menu')
+    print_mock.assert_any_call('1. View Employee details')
+    print_mock.assert_any_call('2. Add Employee')
+    print_mock.assert_any_call('3. Remove Employee')
+    get_object_mock.assert_called_with([])
+    print_mock.assert_called_once_with('Employee: John Doe\nUsername: johndoe\nDate joined: 2020-01-01\n') # Replace the expected employee details
+    get_object_mock.assert_called_with([])
+    remove_employee_menu_mock.assert_called_once()
+    get_object_mock.assert_called_with([])
+    add_employee_mock.assert_called_once()
+    
+    
+def test_validateCreditCard(mocker):
+    mocker.patch('builtins.input', side_effect=["123456789012345", "1234567890123456"])
+    result = validateCreditCard()
+    assert result == "1234567890123456"
