@@ -302,3 +302,98 @@ def test_LogOut(interface, mocker):
     writeJson.writeJson.assert_any_call(allUsers)
     # Check that the writeJson method was not called for the non-updated list
     writeJson.writeJson.assert_not_called(interface.orders)
+
+
+@pytest.fixture
+def admininterface():
+    return AdminInterface()
+
+def test_AddAdmin(admininterface):
+    # Test adding a new admin
+    assert admininterface.AddAdmin('admin1', 'password1', 'John', 'Doe') == True
+    assert len(admininterface.admins) == 1
+
+    # Test adding an admin with an existing username
+    assert admininterface.AddAdmin('admin1', 'password2', 'Jane', 'Doe') == False
+    assert len(admininterface.admins) == 1
+
+def test_AddEmployee(admininterface):
+    # Test adding a new employee
+    assert admininterface.AddEmployee('employee1', 'password1', 'John', 'Doe') == True
+    assert len(admininterface.employees) == 1
+
+    # Test adding an employee with an existing username
+    assert admininterface.AddEmployee('employee1', 'password2', 'Jane', 'Doe') == False
+    assert len(admininterface.employees) == 1
+
+def test_ordersMadeByUser(admininterface):
+    # Create some orders for a user
+    user = users.Customer('user1', 'password1', 'John', 'Doe')
+    car1 = vehicles.Car('1234', 'Info1', 'Performance1', 'Design1', 'Handling1', 'Comfort1', 'Entertainment1', 'Protection1', 'Package1', 10000, status.Status.AVAILABLE)
+    car2 = vehicles.Car('5678', 'Info2', 'Performance2', 'Design2', 'Handling2', 'Comfort2', 'Entertainment2', 'Protection2', 'Package2', 20000, status.Status.AVAILABLE)
+    order1 = admin_interface.MakeOrder(user, car1)
+    order2 = admin_interface.MakeOrder(user, car2)
+
+    # Test getting the orders made by that user
+    assert len(admininterface.ordersMadeByUser(user)) == 2
+
+def test_RemoveUser(admininterface):
+    # Add some users
+    admin = users.Admin('admin1', 'password1', 'John', 'Doe')
+    employee = users.Employee('employee1', 'password1', 'Jane', 'Doe')
+    customer = users.Customer('customer1', 'password1', 'Bob', 'Smith')
+    admininterface.admins.append(admin)
+    admininterface.employees.append(employee)
+    admininterface.__users__.append(admin)
+    admininterface.__users__.append(employee)
+    admininterface.__users__.append(customer)
+
+    # Test removing an admin
+    assert admininterface.RemoveUser(admin) == True
+    assert len(admininterface.admins) == 0
+    assert admininterface.UserExists(admin.username) == False
+    assert admininterface.UserExists(admin.password) == False
+
+    # Test removing an employee
+    assert admininterface.RemoveUser(employee) == True
+    assert len(admininterface.employees) == 0
+    assert admininterface.UserExists(employee.username) == False
+    assert admininterface.UserExists(employee.password) == False
+
+    # Test removing a customer
+    assert admininterface.RemoveUser(customer) == True
+    assert len(admininterface.__users__) == 0
+    assert admininterface.UserExists(customer.username) == False
+    assert admininterface.UserExists(customer.password) == False
+
+    # Test removing a non-existent user
+    assert admininterface.RemoveUser(admin) == False
+
+def test_AddInventory(admininterface):
+    # Test adding a new car to the inventory
+    assert admininterface.AddInventory('1234', 'Info1', 'Performance1', 'Design1', 'Handling1', 'Comfort1', 'Entertainment1', 'Protection1', 'Package1', 10000, status.Status.AVAILABLE) == True
+    assert len(admininterface.inventory) == 1
+
+    # Test adding a car with an existing VIN
+    assert admininterface.AddInventory('1234', 'Info2', 'Performance2', 'Design2', 'Handling2', 'Comfort2', 'Entertainment2', 'Protection2', 'Package2', 20000, status.Status.AVAILABLE) == False
+    assert len(admininterface.inventory) == 1
+
+def test_RemoveInventory(admininterface):
+    # Add some cars to the inventory
+    car1 = vehicles.Car('1234', 'Info1', 'Performance1', 'Design1', 'Handling1', 'Comfort1', 'Entertainment1', 'Protection1', 'Package1', 10000, status.Status.AVAILABLE)
+    car2 = vehicles.Car('5678', 'Info2', 'Performance2', 'Design2', 'Handling2', 'Comfort2', 'Entertainment2', 'Protection2', 'Package2', 20000, status.Status.ORDERED)
+    admin_interface.inventory.append(car1)
+    admin_interface.inventory.append(car2)
+
+    # Test removing an available car
+    assert admininterface.RemoveInventory(car1) == True
+    assert len(admininterface.inventory) == 1
+    assert admininterface.CarExists('1234') == False
+
+    # Test removing an ordered car
+    assert admininterface.RemoveInventory(car2) == True
+    assert len(admininterface.inventory) == 0
+    assert admininterface.CarExists('5678') == False
+
+    # Test removing a non-existent car
+    assert admininterface.RemoveInventory(car1) == False
