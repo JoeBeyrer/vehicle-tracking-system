@@ -1,7 +1,7 @@
 import pytest
 from unittest import mock
 from PigeonBox.status import *
-from car import Car
+from PigeonBox.vehicles import *
 
 
 def test_car_init():
