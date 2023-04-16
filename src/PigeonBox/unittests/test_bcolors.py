@@ -1,6 +1,6 @@
 import pytest
 from unittest import *
-from bcolors import *
+from PigeonBox.bcolors import *
 
 def test_PrintFormat(mocker):
     # Create a mock object for the print function
