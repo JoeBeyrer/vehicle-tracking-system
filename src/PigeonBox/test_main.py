@@ -495,3 +495,158 @@ def test_validateCreditCard(mocker):
     mocker.patch('builtins.input', side_effect=["123456789012345", "1234567890123456"])
     result = validateCreditCard()
     assert result == "1234567890123456"
+    
+def test_modifyCustomerDetails(mocker):
+    # Mock the necessary dependencies
+    print_mock = mocker.patch('builtins.print')
+    get_action_mock = mocker.patch('main.getAction')
+    get_action_mock.side_effect = ["1", "123 Main St", "", "2", "newemail@example.com", "", "3", "4111111111111111", ""]  # Return values for getAction calls
+    get_object_mock = mocker.patch('main.GetObject')
+    customer_mock = mocker.MagicMock()
+    get_object_mock.side_effect = [customer_mock, None]  # Return values for GetObject calls 
+    change_customer_address_mock = mocker.patch.object(interface, 'changeCustomerAddress')
+    change_customer_email_mock = mocker.patch.object(interface, 'changeCustomerEmail')
+    change_customer_card_mock = mocker.patch.object(interface, 'changeCustomerCard')
+    email_exists_mock = mocker.patch.object(interface, 'emailExists')
+    email_exists_mock.return_value = False
+    validate_credit_card_mock = mocker.patch('main.validateCreditCard')
+    validate_credit_card_mock.return_value = '4111111111111111'
+
+    # Test the function
+    modifyCustomerDetails()
+
+    # Check that the necessary functions were called
+    get_object_mock.assert_called_with(interface.getCustomerList())
+    print_mock.assert_any_call('1. Update home address')
+    print_mock.assert_any_call('2. Update email address')
+    print_mock.assert_any_call('3. Update card details')
+    get_object_mock.assert_called_with(interface.getCustomerList())
+    change_customer_address_mock.assert_called_with(customer_mock, "123 Main St")
+    get_object_mock.assert_called_with(interface.getCustomerList())
+    email_exists_mock.assert_called_with("newemail@example.com")
+    change_customer_email_mock.assert_called_with(customer_mock, "newemail@example.com")
+    validate_credit_card_mock.assert_called_once()
+    change_customer_card_mock.assert_called_with(customer_mock, '4111111111111111')
+    
+def test_ManageCustomersMenu(mocker):
+    # Mock the necessary dependencies
+    print_mock = mocker.patch('builtins.print')
+    get_action_mock = mocker.patch('main.getAction')
+    #Mock for various user inputs
+    get_action_mock.side_effect = ["1", "", "2", "Alice", "Smith", "1111222233334444", "alice@example.com", "123 Main St", "4", "1", "", "n", "3", "Alice", "Smith", "1111222233334444", "alice@example.com", "123 Main St", "2", "Bob", "Jones", "5555666677778888", "bob@example.com", "456 Second St", "", ""]
+
+    get_object_mock = mocker.patch('main.GetObject')
+    customer_mock = mocker.MagicMock()
+    get_object_mock.side_effect = [customer_mock, None]  # Return values for GetObject calls 
+
+    add_customer_mock = mocker.patch('main.AddCustomer')
+    delete_customer_menu_mock = mocker.patch('main.DeleteCustomerMenu')
+    modify_customer_details_mock = mocker.patch('main.modifyCustomerDetails')
+
+    # Test the function
+    ManageCustomersMenu()
+
+    # Check that the necessary functions were called
+    assert print_mock.call_count == 10
+    assert get_action_mock.call_count == 7
+    assert get_object_mock.call_count == 4
+    add_customer_mock.assert_called_once()
+    delete_customer_menu_mock.assert_called_once_with(customer_mock)
+    modify_customer_details_mock.assert_called_once_with(customer_mock)
+
+def test_AccountSettingsMenu(mocker):
+    # Mock the necessary dependencies
+    print_mock = mocker.patch('builtins.print')
+    get_action_mock = mocker.patch('main.getAction')
+    get_action_mock.side_effect = ["1", "", "2", "", "3", ""]
+
+    validate_password_mock = mocker.patch('main.validatePassword')
+    validate_password_mock.side_effect = ["new_password", None]
+
+    validate_username_mock = mocker.patch('main.validateUsername')
+    validate_username_mock.side_effect = ["new_username", None]
+
+    change_password_menu_mock = mocker.patch('main.ChangePasswordMenu')
+    change_username_menu_mock = mocker.patch('main.ChangeUsernameMenu')
+
+    # Test the function
+    AccountSettingsMenu()
+
+    # Check that the necessary functions were called
+    assert print_mock.call_count == 3
+    assert get_action_mock.call_count == 3
+    assert validate_password_mock.call_count == 2
+    assert validate_username_mock.call_count == 2
+    change_password_menu_mock.assert_called_once()
+    change_username_menu_mock.assert_called_once()
+    
+def test_menu(mocker):
+    # Mock the necessary dependencies
+    print_mock = mocker.patch('builtins.print')
+    get_action_mock = mocker.patch('main.getAction')
+    get_action_mock.side_effect = ["1", "q", "", "2", "invalid", "3", "4", "invalid", "", "a", "", "q", ""]
+
+    order_menu_mock = mocker.patch('main.OrderMenu')
+    car_sales_menu_mock = mocker.patch('main.CarSalesMenu')
+    inventory_menu_mock = mocker.patch('main.InventoryMenu')
+    manage_customers_menu_mock = mocker.patch('main.ManageCustomersMenu')
+    manage_employees_menu_mock = mocker.patch('main.ManageEmployeesMenu')
+    account_settings_menu_mock = mocker.patch('main.AccountSettingsMenu')
+
+    # Test the function
+    menu()
+
+    # Check that the necessary functions were called
+    assert print_mock.call_count == 15
+    assert get_action_mock.call_count == 13
+    order_menu_mock.assert_called_once()
+    car_sales_menu_mock.assert_called_once()
+    inventory_menu_mock.assert_called_once()
+    manage_customers_menu_mock.assert_called_once()
+    manage_employees_menu_mock.assert_not_called()
+    account_settings_menu_mock.assert_called_once()
+    
+def test_run(mocker):
+    # Test user login
+    user_mock = mocker.MagicMock()
+    login_mock = mocker.patch('main.Login')
+    login_mock.side_effect = [user_mock, None]
+
+    # Test login confirmation
+    confirm_mock = mocker.patch('main.ConfirmSelection')
+    confirm_mock.side_effect = [True, False]
+
+    # Test interface creation
+    interface_mock = mocker.patch('main.Interface')
+    admin_interface_mock = mocker.patch('main.AdminInterface')
+
+    # Test the function with a regular user
+    run()
+    login_mock.assert_called_with()
+    interface_mock.assert_called_with()
+    admin_interface_mock.assert_not_called()
+    confirm_mock.assert_called_with(msg="Would you like to log in again?")
+
+    # Test the function with an admin user
+    user_mock.getCategory.return_value = "admin"
+    run()
+    login_mock.assert_called_with()
+    admin_interface_mock.assert_called_with()
+    confirm_mock.assert_called_with(msg="Would you like to log in again?")
+
+    # Test the function when the user logs out and logs back in again
+    login_mock.side_effect = [user_mock, user_mock, None]
+    confirm_mock.side_effect = [True, False]
+    run()
+    login_mock.assert_called_with()
+    admin_interface_mock.assert_called_with()
+    confirm_mock.assert_called_with(msg="Would you like to log in again?")
+
+    # Test the function when the user logs out and cancels the login again process
+    login_mock.side_effect = [user_mock, None]
+    confirm_mock.side_effect = [True, True]
+    run()
+    login_mock.assert_called_with()
+    interface_mock.assert_called_with()
+    admin_interface_mock.assert_not_called()
+    confirm_mock.assert_called_with(msg="Would you like to log in again?")
