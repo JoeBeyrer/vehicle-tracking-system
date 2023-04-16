@@ -281,3 +281,122 @@ def test_modifyInventoryMenu(mocker):
     # Assert that the function calls the RemoveCar method and returns None
     assert modifyInventoryMenu() is None
     main.RemoveCar.assert_called_once()
+    
+def test_AddCustomer(mocker): #should work - need to add comments
+    mock_input = mocker.patch('builtins.input', side_effect=['John', 'Doe', 'johndoe@gmail.com', '4111111111111111', '123 Main St'])
+    mock_add_customer = mocker.patch('main.interface.AddCustomer', return_value='John Doe') # 'main.interface.AddCustomer' MAY BE WRONG
+    mock_print = mocker.patch('bcolors.PrintFormat')
+
+    result = AddCustomer()
+    
+    # Check that the mocked functions were called correctly
+    mock_input.assert_has_calls([
+        mocker.call('First Name'), 
+        mocker.call('Last Name'), 
+        mocker.call('email address', isEmail=True), 
+        mocker.call('Home address')
+    ])
+    mock_add_customer.assert_called_once_with('John', 'Doe', '4111111111111111', 'johndoe@gmail.com', '123 Main St')
+    mock_print.assert_called_once_with('Success', '\nAdded John Doe with success')
+    # Check the return value
+    assert result == 'John Doe'
+    
+def test_DeleteCustomerMenu(mocker): # need to comment
+    mock_confirm = mocker.patch('main.ConfirmSelection', return_value=True)
+    mock_interface = mocker.patch('main.interface.RemoveCustomer')
+    mock_print = mocker.patch('main.PrintFormat')
+
+    customer_to_delete = mock.MagicMock(orders=['order1', 'order2'])
+    DeleteCustomerMenu(customer_to_delete)
+
+    mock_confirm.assert_called_once_with(
+        msg="\nAre you sure you want to delete MagicMock object at",
+        title="Confirm Delete",
+        cancel=True
+    )
+    mock_interface.assert_called_once_with(customer_to_delete)
+    mock_print.assert_called_once_with("Success", "Removed customer successfully")
+    
+def test_Login(mocker): # need to comment
+    mock_input = mocker.patch('builtins.input', side_effect=['gkubach0', '2nBztx3qzXV'])
+    mock_auth = mocker.patch('main.Auth.Authenticate', return_value=mock.MagicMock())
+    mock_print = mocker.patch('main.PrintFormat')
+
+    result = Login()
+
+    mock_input.assert_has_calls([
+        mocker.call('Enter username: '), 
+        mocker.call('Enter password: ')
+    ])
+    mock_auth.assert_called_once_with('gkubach0', '2nBztx3qzXV')
+    mock_print.assert_called_once_with('Important', '\nLogin page')
+    assert result is not None
+    
+    
+def test_modifyCarMenu(mocker): #need to comment
+    mock_car = mock.MagicMock()
+    mock_print = mocker.patch('main.PrintFormat')
+    mocker.patch('main.getAction', side_effect=['1', '2', '3', '4'])
+    mocker.patch('main.updateCarStatus')
+    mocker.patch('main.interface.changeCarPrice')
+    mocker.patch('main.interface.changeCarMileage')
+    mock_update_warranty = mocker.patch.object(mock_car, 'UpdateWarranty')
+
+    modifyCarMenu(mock_car)
+
+    mock_print.assert_called_once_with('Success', mock_car)
+    mock_update_warranty.assert_not_called()
+
+    modifyCarMenu(mock_car)
+
+    mock_print.assert_called_with('Action', mock.ANY)
+    mock_update_warranty.assert_not_called()
+
+    modifyCarMenu(mock_car)
+
+    mock_update_warranty.assert_called_once_with(mock.ANY)
+    
+
+def test_SearchCarMenu(mocker): # need to comment
+    mock_car = mocker.MagicMock()
+    mocker.patch('main.CarSearch', return_value=mock_car)
+    mocker.patch('main.PrintFormat')
+    mocker.patch('main.getAction', side_effect=['1', '2'])
+
+    SearchCarMenu()
+
+    mock_car.getStatusStr.assert_called_once()
+    mock_car.UpdateWarranty.assert_not_called()
+
+    SearchCarMenu(mock_car)
+
+    mock_car.getStatusStr.assert_called_once()
+    mock_car.UpdateWarranty.assert_not_called()
+    
+    
+def test_InventoryMenu(mocker): # need to comment
+    mocker.patch('main.PrintFormat')
+    mocker.patch('main.interface.GetInventory', return_value=[])
+    mocker.patch('builtins.input', side_effect=['0', '', '1', '', '2', '', '3', '', '4', '', '', '', '', '', '', '', '', '', '', ''])
+
+    InventoryMenu()
+
+    assert main.interface.GetInventory.call_count == 5
+    assert main.PrintFormat.call_count == 11
+    
+    
+def test_AddCar(mocker):
+    # Mock the input functions
+    mocker.patch('builtins.input', side_effect=['12345', 'Ford, Mustang, 2022', '5000, Red', '20000', 'V8, Automatic', 'Leather, Sunroof', 'Metallic', 'Sport', 'Standard', '5, 100000'])
+    
+    # Mock the interface.AddInventory function to return True
+    mocker.patch('main.interface.AddInventory', return_value=True)
+    
+    # Call the function
+    result = main.AddCar()
+    
+    # Check that the interface.AddInventory function was called with the correct parameters
+    main.interface.AddInventory.assert_called_with('12345', info={'model': 'Mustang', 'make': 'Ford', 'mileage': 5000, 'year': 2022, 'color': 'Red'}, performance={'engine': 'V8', 'transmission': 'Automatic'}, comfort=['Standard'], design={'interior': ['Leather'], 'exterior': [{'paint': 'Metallic', 'extra': ['Sunroof']}]}, protection={'maintenance': '100000', 'warranty': ['5']}, price=20000, handling=['Sport'], package='Standard', entertainment=['Sport'], status=mock.ANY)
+    
+    # Check that the function returns True
+    assert result == True
